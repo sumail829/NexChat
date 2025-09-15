@@ -1,16 +1,22 @@
-import pkg from "pg";
-const { Pool } = pkg;
+import { PrismaClient } from "../generated/prisma/index.js";
+const prisma = new PrismaClient();
 
-const pool = new Pool({
-  user: "chatuser",
-  host: "localhost",
-  database: "chatapp",
-  password: "chatpass",
-  port: 5433, // 👈 must match your docker-compose mapping
-});
+// Example: create a user
+async function main() {
+  const user = await prisma.user.create({
+    data: {
+      username: "samir",
+      email: "samir@example.com",
+      password: "hashedpassword"
+    }
+  });
+  console.log(user);
+}
 
-pool.connect()
-  .then(() => console.log("✅ Connected to Postgres!"))
-  .catch(err => console.error("❌ Connection error", err));
+main()
+  .catch(e => console.error(e))
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
 
-export default pool;
+  export default prisma;

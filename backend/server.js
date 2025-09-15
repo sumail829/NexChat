@@ -2,6 +2,7 @@ import express from "express";
 import http from "http";
 import { Server } from "socket.io";
 import pool from "./db/db.js";  // 👈 import your database connection
+import userRoutes from "./routes/userRoutes.js"
 
 const app = express();
 const server = http.createServer(app);
@@ -20,6 +21,8 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.send("🚀 Chat App Backend is running!");
 });
+
+app.use("/api",userRoutes);
 
 // Socket.io logic
 io.on("connection", (socket) => {
