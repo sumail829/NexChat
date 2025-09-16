@@ -3,6 +3,7 @@ import http from "http";
 import { Server } from "socket.io";
 import pool from "./db/db.js";  // 👈 import your database connection
 import userRoutes from "./routes/userRoutes.js"
+import conversationRoutes from "./routes/conversationRoutes.js"
 
 const app = express();
 const server = http.createServer(app);
@@ -23,6 +24,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api",userRoutes);
+app.use("/api",conversationRoutes);
 
 // Socket.io logic
 io.on("connection", (socket) => {
