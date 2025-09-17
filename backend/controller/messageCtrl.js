@@ -11,7 +11,7 @@ import prisma from "../db/db.js";
 //   conversation   Conversation  @relation(fields: [conversationId], references: [id])
 //   conversationId Int
 // }
-const createMessage=async(req,res)=>{
+export const createMessage=async(req,res)=>{
     const {conversationId,text,senderId}=req.body;
     try {
      if(!conversationId || !senderId || !text){
@@ -22,10 +22,39 @@ const createMessage=async(req,res)=>{
             text,
             senderId,
             conversationId
+        },
+        include:{
+            sender:true
         }
      })
-        
+       io.to(conversationId).emit("receiveMessage", message);
+        return res.status(201).json({message:"text send successfully",message})
     } catch (error) {
+         console.error(error);
+    res.status(500).json({ error: "Could not send message", details: error });
+    }
+}
+
+export const getMessage=async(req,res)=>{
+    try {
+        const {conversationId}=req.params;
+        if(!conversationId){
+            return res.status(400).json({message:"there is no converation with this id"})
+        }
+        const fetchMessage=await prisma.message.findMany({
+            where:{conversationId:parseInt(conversationId,10)},
+            include:{
+                sender:{
+                    select:{id:true,username:true,email:true}
+                },
+            },
+            orderBy:{createdAt:"asc"}
+        })
+        res.status(200).json(fetchMessage);
+        console.log(fetchMessage,"this is fetched message")
+    } catch (error) {
+        console.log("something went wrong",error)
+            res.status(500).json({ error: "Could not fetch messages", details: error });
         
     }
 }

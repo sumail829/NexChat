@@ -4,11 +4,11 @@ import { Server } from "socket.io";
 import pool from "./db/db.js";  // 👈 import your database connection
 import userRoutes from "./routes/userRoutes.js"
 import conversationRoutes from "./routes/conversationRoutes.js"
+import messageRoutes from "./routes/messageRoutes.js"
 
 const app = express();
 const server = http.createServer(app);
 
-// setup socket.io
 const io = new Server(server, {
   cors: {
     origin: "*",  // later restrict to frontend URL
@@ -25,23 +25,29 @@ app.get("/", (req, res) => {
 
 app.use("/api",userRoutes);
 app.use("/api",conversationRoutes);
+app.use("/api",messageRoutes);
 
 // Socket.io logic
+
 io.on("connection", (socket) => {
-  console.log("🟢 New user connected:", socket.id);
+  console.log("User connected:", socket.id);
 
-  socket.on("send_message", (data) => {
-    console.log("📩 Message received:", data);
-
-    // (Later) Save message to Postgres using pool.query()
-    // pool.query("INSERT INTO messages (sender, text) VALUES ($1, $2)", [data.sender, data.text]);
-
-    // broadcast message to everyone
-    io.emit("receive_message", data);
+  // Join a conversation room
+  socket.on("joinConversation", (conversationId) => {
+    socket.join(`conversation_${conversationId}`);
+    console.log(`User ${socket.id} joined conversation ${conversationId}`);
   });
 
+  // Send message only to that room
+  socket.on("sendMessage", (msg) => {
+    const room = `conversation_${msg.conversationId}`;
+    io.to(room).emit("receiveMessage", msg);
+    console.log("Message sent to room:", room, msg);
+  });
+
+
   socket.on("disconnect", () => {
-    console.log("🔴 User disconnected:", socket.id);
+    console.log("User disconnected:", socket.id);
   });
 });
 
