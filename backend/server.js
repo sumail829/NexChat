@@ -5,6 +5,7 @@ import pool from "./db/db.js";  // 👈 import your database connection
 import userRoutes from "./routes/userRoutes.js"
 import conversationRoutes from "./routes/conversationRoutes.js"
 import messageRoutes from "./routes/messageRoutes.js"
+import cors from "cors"
 
 const app = express();
 const server = http.createServer(app);
@@ -14,6 +15,8 @@ const io = new Server(server, {
     origin: "*",  // later restrict to frontend URL
   },
 });
+
+app.use(cors());
 
 // Middleware
 app.use(express.json());
